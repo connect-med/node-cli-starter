@@ -4,8 +4,8 @@ import { Writable } from 'stream'
 export const createWritable = () => {
   const writes: string[] = []
   const stdout = new Writable({
-    write(chunk, _encoding, callback) {
-      writes.push(chunk.toString())
+    write(chunk: unknown, _encoding, callback) {
+      writes.push(chunk?.toString() as string)
       callback()
     },
   })
