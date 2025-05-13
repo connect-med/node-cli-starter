@@ -1,33 +1,24 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { SampleCommand } from './SampleCommand'
-import { Cli } from 'clipanion'
+import { createAndRegisterCli, createWritable } from 'test/testUtils'
 
 describe('SampleCommand', () => {
   it('prints t and w values if provided', async () => {
-    const stdout = { write: vi.fn() }
-    const cli = new Cli({
-      binaryLabel: 'test',
-      binaryName: 'test',
-      binaryVersion: '1.0.0',
-    })
+    const { stdout, writes } = createWritable()
+    const cli = createAndRegisterCli(SampleCommand)
 
-    cli.register(SampleCommand)
-
-    const t = await cli.run(['-t', '123', '-w', 'abc'])
-    console.log(t, stdout.write)
-
-    expect(stdout.write).toHaveBeenCalledWith('t value: 123\n')
-    expect(stdout.write).toHaveBeenCalledWith('w value: abc\n')
+    await cli.run(['-t', '123', '-w', 'abc'], { stdout })
+    expect(writes).toContain('t value: 123\n')
+    expect(writes).toContain('w value: abc\n')
   })
 
-  // it('prints only t if only t is provided', async () => {
-  //   const stdout = { write: vi.fn() }
-  //   const cli = new Cli({ binaryLabel: '', binaryName: '', binaryVersion: '' })
-  //   cli.register(SampleCommand)
+  it('prints only t if only t is provided', async () => {
+    const { stdout, writes } = createWritable()
+    const cli = createAndRegisterCli(SampleCommand)
 
-  //   await cli.run(['-t', 'hello'])
+    await cli.run(['-t', 'hello'], { stdout })
 
-  //   expect(stdout.write).toHaveBeenCalledWith('t value: hello\n')
-  //   expect(stdout.write).not.toHaveBeenCalledWith(expect.stringContaining('w value'))
-  // })
+    expect(writes).toContain('t value: hello\n')
+    expect(writes.some((line) => line.includes('w value'))).toBe(false)
+  })
 })
